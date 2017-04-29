@@ -3,29 +3,40 @@ version: '2'
 services:
 
   splunk_master:
-    image: "splunk/splunk"
+    build: ./master
     hostname: splunk_master
-    environment:
-      SPLUNK_START_ARGS: --accept-license --answer-yes
-      SPLUNK_CMD_1: 'add user super -password password -role admin -auth admin:changeme'
-    ports:
-     - "8001:8000"
-    volumes:
-     - ./apps/my_master_app:/opt/splunk/etc/apps/my_master_app
-
-  splunk_head:
-    image: "splunk/splunk"
-    hostname: splunk_head_01
     environment:
       SPLUNK_START_ARGS: --accept-license --answer-yes
       SPLUNK_CMD_1: 'add user super -password password -role admin -auth admin:changeme'
     ports:
      - "8000:8000"
     volumes:
+     - ./apps/my_master_app:/opt/splunk/etc/apps/my_master_app
+
+  splunk_head_1:
+    build: ./head
+    hostname: splunk_head_01
+    environment:
+      SPLUNK_START_ARGS: --accept-license --answer-yes
+      SPLUNK_CMD_1: 'add user super -password password -role admin -auth admin:changeme'
+    ports:
+     - "8011:8000"
+    volumes:
+     - ./apps/my_app:/opt/splunk/etc/apps/my_app
+
+  splunk_head_2:
+    build: ./head
+    hostname: splunk_head_02
+    environment:
+      SPLUNK_START_ARGS: --accept-license --answer-yes
+      SPLUNK_CMD_1: 'add user super -password password -role admin -auth admin:changeme'
+    ports:
+     - "8012:8000"
+    volumes:
      - ./apps/my_app:/opt/splunk/etc/apps/my_app
 
   splunk_indexer_1:
-    image: "splunk/splunk"
+    build: ./indexer
     hostname: splunk_idx_01
     environment:
       SPLUNK_START_ARGS: --accept-license --answer-yes
@@ -35,7 +46,7 @@ services:
       - "8021:8000"
 
   splunk_indexer_2:
-    image: "splunk/splunk"
+    build: ./indexer
     hostname: splunk_idx_02
     environment:
       SPLUNK_START_ARGS: --accept-license --answer-yes
@@ -45,7 +56,7 @@ services:
       - "8022:8000"
 
   splunk_indexer_3:
-    image: "splunk/splunk"
+    build: ./indexer
     hostname: splunk_idx_03
     environment:
       SPLUNK_START_ARGS: --accept-license --answer-yes
@@ -53,3 +64,13 @@ services:
       SPLUNK_CMD_1: 'add user super -password password -role admin -auth admin:changeme'
     ports:
       - "8023:8000"
+
+  splunk_fwd:
+    image: splunk/universalforwarder:6.5.2
+    hostname: splunk_fwd
+    environment:
+      SPLUNK_START_ARGS: --accept-license --answer-yes
+      SPLUNK_USER: root
+      SPLUNK_FORWARD_SERVER: splunk_indexer_1:9997
+
+
